@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
 from fastapi import FastAPI
@@ -26,6 +26,31 @@ class RouteDecision(BaseModel):
     fallback_model: str
     reason: str
     review_required: bool
+
+
+class RunRecord(BaseModel):
+    id: str
+    workflow: str
+    provider: str
+    model: str
+    outcome: Literal["approved", "in_review", "fallback_used", "failed"]
+    submitted_at: str
+
+
+class ReviewItem(BaseModel):
+    id: str
+    workflow: str
+    summary: str
+    reviewer: str
+    priority: Literal["high", "medium"]
+    status: Literal["open", "pending_approval"]
+
+
+class ProviderHealth(BaseModel):
+    provider: str
+    status: Literal["online", "degraded"]
+    median_latency: str
+    strongest_for: str
 
 
 WORKFLOWS = [
@@ -58,6 +83,73 @@ PROVIDER_MAP = {
     "gpt-4.1-mini": "openai",
     "gemini-2.0-flash": "google",
 }
+
+RUNS = [
+    RunRecord(
+        id="RUN-1842",
+        workflow="Vendor Intake Review",
+        provider="anthropic",
+        model="claude-3-5-sonnet",
+        outcome="approved",
+        submitted_at="08:31 AM",
+    ),
+    RunRecord(
+        id="RUN-1841",
+        workflow="Policy Delta Check",
+        provider="openai",
+        model="gpt-4.1",
+        outcome="in_review",
+        submitted_at="08:12 AM",
+    ),
+    RunRecord(
+        id="RUN-1839",
+        workflow="Claims Summary Queue",
+        provider="google",
+        model="gemini-2.0-flash",
+        outcome="fallback_used",
+        submitted_at="07:44 AM",
+    ),
+]
+
+REVIEW_QUEUE = [
+    ReviewItem(
+        id="RUN-1841",
+        workflow="Policy Delta Check",
+        summary="3 clauses changed indemnity language and need legal ops review.",
+        reviewer="Legal Ops",
+        priority="high",
+        status="open",
+    ),
+    ReviewItem(
+        id="RUN-1838",
+        workflow="Vendor Intake Review",
+        summary="Beneficial ownership and sanctions note need human confirmation.",
+        reviewer="Risk Team",
+        priority="medium",
+        status="pending_approval",
+    ),
+]
+
+PROVIDER_HEALTH = [
+    ProviderHealth(
+        provider="anthropic",
+        status="online",
+        median_latency="2.3s",
+        strongest_for="Document extraction",
+    ),
+    ProviderHealth(
+        provider="openai",
+        status="online",
+        median_latency="1.8s",
+        strongest_for="Policy comparison",
+    ),
+    ProviderHealth(
+        provider="google",
+        status="online",
+        median_latency="1.4s",
+        strongest_for="High-volume summaries",
+    ),
+]
 
 app = FastAPI(title="OrbitOps AI API", version="0.1.0")
 
@@ -96,7 +188,22 @@ def choose_route(submission: TaskSubmission) -> RouteDecision:
 
 @app.get("/health")
 def healthcheck() -> dict[str, str]:
-    return {"status": "ok", "service": "orbitops-api", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "ok", "service": "orbitops-api", "timestamp": datetime.now(UTC).isoformat()}
+
+
+@app.get("/dashboard")
+def dashboard() -> dict[str, object]:
+    return {
+        "metrics": {
+            "active_workflows": len(WORKFLOWS),
+            "providers_online": len(PROVIDER_HEALTH),
+            "pending_reviews": len(REVIEW_QUEUE),
+            "validation_pass_rate": "98.4%",
+        },
+        "runs": RUNS,
+        "review_queue": REVIEW_QUEUE,
+        "provider_health": PROVIDER_HEALTH,
+    }
 
 
 @app.get("/workflows")
@@ -104,6 +211,44 @@ def list_workflows() -> dict[str, list[WorkflowTemplate]]:
     return {"items": WORKFLOWS}
 
 
+@app.get("/runs")
+def list_runs() -> dict[str, list[RunRecord]]:
+    return {"items": RUNS}
+
+
+@app.get("/review")
+def list_review_queue() -> dict[str, list[ReviewItem]]:
+    return {"items": REVIEW_QUEUE}
+
+
+@app.get("/providers")
+def list_providers() -> dict[str, list[ProviderHealth]]:
+    return {"items": PROVIDER_HEALTH}
+
+
 @app.post("/route")
 def route_task(submission: TaskSubmission) -> dict[str, RouteDecision]:
     return {"route": choose_route(submission)}
+
+
+@app.post("/runs/simulate")
+def simulate_run(submission: TaskSubmission) -> dict[str, object]:
+    route = choose_route(submission)
+    outcome = "in_review" if route.review_required else "approved"
+    run = RunRecord(
+        id=f"RUN-{1840 + len(RUNS) + 1}",
+        workflow=submission.workflow_name,
+        provider=route.provider,
+        model=route.model,
+        outcome=outcome,
+        submitted_at=datetime.now(UTC).strftime("%I:%M %p"),
+    )
+    return {
+        "run": run,
+        "route": route,
+        "structured_result": {
+            "status": "validated",
+            "schema": "workflow_output_v1",
+            "summary": "Simulated structured result generated for demo purposes.",
+        },
+    }

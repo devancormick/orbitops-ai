@@ -27,11 +27,20 @@ OrbitOps AI combines workflow submission, file intake, model routing, structured
 
 This repository now includes a real starter scaffold instead of documentation only:
 
-- a Next.js dashboard shell in `apps/web`
-- a FastAPI routing service in `services/api`
+- a multi-page Next.js operations workspace in `apps/web`
+- a FastAPI routing and run-simulation service in `services/api`
 - shared workflow seed data in `packages/shared`
 
 The current implementation is intentionally lightweight, but it gives the project a usable starting point for a real product build.
+
+## Implemented Product Areas
+
+- overview dashboard with live workflow and run metrics
+- workflow template library with route and review settings
+- run history screen with provider visibility
+- review queue screen for human approval checkpoints
+- new run screen for structured workflow submission
+- API routes for dashboard data, workflow lists, runs, providers, review queue, routing, and simulated execution
 
 ## Product Screens
 
@@ -73,6 +82,16 @@ source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
+
+The API exposes:
+
+- `GET /dashboard`
+- `GET /workflows`
+- `GET /runs`
+- `GET /review`
+- `GET /providers`
+- `POST /route`
+- `POST /runs/simulate`
 
 ## Why This Project Exists
 
