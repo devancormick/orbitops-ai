@@ -1,0 +1,13 @@
+{
+  "name": "orbitops-ai",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @orbitops/web run dev",
+    "build:web": "npm --workspace @orbitops/web run build",
+    "lint:web": "npm --workspace @orbitops/web run lint"
+  }
+}

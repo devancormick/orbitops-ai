@@ -23,6 +23,35 @@ OrbitOps AI combines workflow submission, file intake, model routing, structured
 - `services/api`: Python orchestration service for provider adapters, prompt handling, routing logic, structured output validation, retries, and fallbacks
 - `packages/shared`: shared contracts for workflow definitions, result schemas, and API payload shapes
 
+## Included Starter Project
+
+This repository now includes a real starter scaffold instead of documentation only:
+
+- a Next.js dashboard shell in `apps/web`
+- a FastAPI routing service in `services/api`
+- shared workflow seed data in `packages/shared`
+
+The current implementation is intentionally lightweight, but it gives the project a usable starting point for a real product build.
+
+## Local Development
+
+### Web
+
+```bash
+npm install
+npm run dev:web
+```
+
+### API
+
+```bash
+cd services/api
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
 ## Why This Project Exists
 
 This repository is meant to represent a credible, real-world platform from a previous engagement rather than a direct copy of a current lead. It is designed to show a more mature product direction with workflow templates, model governance, performance logging, and approval steps built into the system from the start.

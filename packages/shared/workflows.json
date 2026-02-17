@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Vendor Intake Review",
+    "taskType": "extract",
+    "primaryModel": "claude-3-5-sonnet",
+    "fallbackModel": "gpt-4.1-mini",
+    "reviewRequired": true
+  },
+  {
+    "name": "Policy Delta Check",
+    "taskType": "compare",
+    "primaryModel": "gpt-4.1",
+    "fallbackModel": "gemini-2.0-flash",
+    "reviewRequired": true
+  },
+  {
+    "name": "Claims Summary Queue",
+    "taskType": "summarize",
+    "primaryModel": "gemini-2.0-flash",
+    "fallbackModel": "claude-3-5-sonnet",
+    "reviewRequired": false
+  }
+]
