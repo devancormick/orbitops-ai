@@ -1,7 +1,9 @@
 import { Navigation } from "../components/nav";
-import { reviewQueue, runHistory, workflows } from "../lib/data";
+import { workflows } from "../lib/data";
+import { getDashboardData } from "../lib/api";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const dashboard = await getDashboardData();
   return (
     <>
       <Navigation />
@@ -22,10 +24,10 @@ export default function HomePage() {
           <div className="hero-panel">
             <h2>Live ops snapshot</h2>
             <ul>
-              <li><strong>12</strong> active workflows</li>
-              <li><strong>3</strong> providers online</li>
-              <li><strong>98.4%</strong> validation pass rate this week</li>
-              <li><strong>{reviewQueue.length}</strong> approvals waiting now</li>
+              <li><strong>{dashboard.metrics.active_workflows}</strong> active workflows</li>
+              <li><strong>{dashboard.metrics.providers_online}</strong> providers online</li>
+              <li><strong>{dashboard.metrics.validation_pass_rate}</strong> validation pass rate this week</li>
+              <li><strong>{dashboard.metrics.pending_reviews}</strong> approvals waiting now</li>
             </ul>
           </div>
         </section>
@@ -52,7 +54,7 @@ export default function HomePage() {
             <p className="eyebrow">Recent runs</p>
             <h2>Trace every output back to the workflow, provider, and review decision.</h2>
             <div className="run-list">
-              {runHistory.map((run) => (
+              {dashboard.runs.map((run) => (
                 <div key={run.id} className="run-row">
                   <div>
                     <strong>{run.id}</strong>

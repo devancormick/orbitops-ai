@@ -1,7 +1,10 @@
 import { Navigation } from "../../components/nav";
-import { reviewQueue } from "../../lib/data";
+import { getDashboardData } from "../../lib/api";
 
-export default function ReviewPage() {
+export default async function ReviewPage() {
+  const dashboard = await getDashboardData();
+  const selected = dashboard.review_queue[0];
+
   return (
     <>
       <Navigation />
@@ -14,7 +17,7 @@ export default function ReviewPage() {
           <article className="card">
             <h2>Waiting for review</h2>
             <div className="table">
-              {reviewQueue.map((item) => (
+              {dashboard.review_queue.map((item) => (
                 <div key={item.id} className="table-row">
                   <div>
                     <strong>{item.id}</strong>
@@ -26,7 +29,7 @@ export default function ReviewPage() {
                   </div>
                   <div>
                     <strong>{item.age}</strong>
-                    <p>Open</p>
+                    <p>{item.status}</p>
                   </div>
                 </div>
               ))}
@@ -34,10 +37,10 @@ export default function ReviewPage() {
           </article>
           <article className="card">
             <p className="eyebrow">Selected item</p>
-            <h2>Policy Delta Check</h2>
+            <h2>{selected?.workflow ?? "No reviews pending"}</h2>
             <p>
-              The output matched schema, but three indemnity clauses changed enough to require legal ops
-              approval before publishing the structured result back to the workspace.
+              {selected?.summary ??
+                "When a workflow requires review, the selected run appears here with context for the approver."}
             </p>
             <div className="action-row">
               <button className="button button-primary" type="button">Approve result</button>

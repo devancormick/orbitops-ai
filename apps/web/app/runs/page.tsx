@@ -1,7 +1,8 @@
 import { Navigation } from "../../components/nav";
-import { providerHealth, runHistory } from "../../lib/data";
+import { getDashboardData } from "../../lib/api";
 
-export default function RunsPage() {
+export default async function RunsPage() {
+  const dashboard = await getDashboardData();
   return (
     <>
       <Navigation />
@@ -14,7 +15,7 @@ export default function RunsPage() {
           <article className="card">
             <h2>Recent runs</h2>
             <div className="table">
-              {runHistory.map((run) => (
+              {dashboard.runs.map((run) => (
                 <div key={run.id} className="table-row">
                   <div>
                     <strong>{run.id}</strong>
@@ -26,7 +27,7 @@ export default function RunsPage() {
                   </div>
                   <div>
                     <strong>{run.outcome}</strong>
-                    <p>{run.submittedAt}</p>
+                    <p>{run.submitted_at}</p>
                   </div>
                 </div>
               ))}
@@ -35,15 +36,15 @@ export default function RunsPage() {
           <article className="card dark-card">
             <h2>Provider health</h2>
             <div className="metric-stack">
-              {providerHealth.map((provider) => (
-                <div key={provider.name} className="metric-row">
+              {dashboard.provider_health.map((provider) => (
+                <div key={provider.provider} className="metric-row">
                   <div>
-                    <strong>{provider.name}</strong>
-                    <p>{provider.strength}</p>
+                    <strong>{provider.provider}</strong>
+                    <p>{provider.strongest_for}</p>
                   </div>
                   <div>
                     <strong>{provider.status}</strong>
-                    <p>{provider.latency}</p>
+                    <p>{provider.median_latency}</p>
                   </div>
                 </div>
               ))}

@@ -1,7 +1,8 @@
 from datetime import UTC, datetime
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 
@@ -18,6 +19,8 @@ class TaskSubmission(BaseModel):
     task_type: Literal["summarize", "extract", "classify", "compare", "draft"]
     latency_target: Literal["fast", "balanced", "thorough"] = "balanced"
     requires_review: bool = False
+    context: str = Field(min_length=10)
+    workspace: str = "Operations Workspace"
 
 
 class RouteDecision(BaseModel):
@@ -51,6 +54,27 @@ class ProviderHealth(BaseModel):
     status: Literal["online", "degraded"]
     median_latency: str
     strongest_for: str
+
+
+class UploadedFile(BaseModel):
+    id: str
+    filename: str
+    content_type: str
+    workspace: str
+    uploaded_at: str
+    status: Literal["ready", "processing"]
+
+
+class FileUploadRequest(BaseModel):
+    filename: str = Field(min_length=3)
+    content_type: str = "application/pdf"
+    workspace: str = "Operations Workspace"
+
+
+class ReviewDecisionRequest(BaseModel):
+    decision: Literal["approve", "request_rerun"]
+    actor: str = Field(min_length=2)
+    note: str = Field(min_length=5)
 
 
 WORKFLOWS = [
@@ -151,7 +175,24 @@ PROVIDER_HEALTH = [
     ),
 ]
 
+FILES: list[UploadedFile] = []
+
 app = FastAPI(title="OrbitOps AI API", version="0.1.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def run_number() -> str:
+    return f"RUN-{1840 + len(RUNS) + 1}"
+
+
+def file_number() -> str:
+    return f"FILE-{240 + len(FILES) + 1}"
 
 
 def choose_route(submission: TaskSubmission) -> RouteDecision:
@@ -199,10 +240,12 @@ def dashboard() -> dict[str, object]:
             "providers_online": len(PROVIDER_HEALTH),
             "pending_reviews": len(REVIEW_QUEUE),
             "validation_pass_rate": "98.4%",
+            "uploaded_files": len(FILES),
         },
         "runs": RUNS,
         "review_queue": REVIEW_QUEUE,
         "provider_health": PROVIDER_HEALTH,
+        "files": FILES,
     }
 
 
@@ -226,6 +269,11 @@ def list_providers() -> dict[str, list[ProviderHealth]]:
     return {"items": PROVIDER_HEALTH}
 
 
+@app.get("/files")
+def list_files() -> dict[str, list[UploadedFile]]:
+    return {"items": FILES}
+
+
 @app.post("/route")
 def route_task(submission: TaskSubmission) -> dict[str, RouteDecision]:
     return {"route": choose_route(submission)}
@@ -236,19 +284,72 @@ def simulate_run(submission: TaskSubmission) -> dict[str, object]:
     route = choose_route(submission)
     outcome = "in_review" if route.review_required else "approved"
     run = RunRecord(
-        id=f"RUN-{1840 + len(RUNS) + 1}",
+        id=run_number(),
         workflow=submission.workflow_name,
         provider=route.provider,
         model=route.model,
         outcome=outcome,
         submitted_at=datetime.now(UTC).strftime("%I:%M %p"),
     )
+    RUNS.insert(0, run)
+    if route.review_required:
+        REVIEW_QUEUE.insert(
+            0,
+            ReviewItem(
+                id=run.id,
+                workflow=submission.workflow_name,
+                summary=submission.context[:90],
+                reviewer="Operations Review",
+                priority="high" if submission.task_type in {"compare", "extract"} else "medium",
+                status="open",
+            ),
+        )
     return {
         "run": run,
         "route": route,
         "structured_result": {
             "status": "validated",
             "schema": "workflow_output_v1",
-            "summary": "Simulated structured result generated for demo purposes.",
+            "summary": f"Structured result prepared for {submission.workflow_name}.",
+            "workspace": submission.workspace,
+        },
+    }
+
+
+@app.post("/files")
+def create_file(request: FileUploadRequest) -> dict[str, UploadedFile]:
+    upload = UploadedFile(
+        id=file_number(),
+        filename=request.filename,
+        content_type=request.content_type,
+        workspace=request.workspace,
+        uploaded_at=datetime.now(UTC).strftime("%I:%M %p"),
+        status="ready",
+    )
+    FILES.insert(0, upload)
+    return {"file": upload}
+
+
+@app.post("/review/{run_id}")
+def review_run(run_id: str, request: ReviewDecisionRequest) -> dict[str, object]:
+    queue_item = next((item for item in REVIEW_QUEUE if item.id == run_id), None)
+    if queue_item is None:
+        raise HTTPException(status_code=404, detail="Review item not found.")
+
+    REVIEW_QUEUE.remove(queue_item)
+    run = next((item for item in RUNS if item.id == run_id), None)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found.")
+
+    updated_outcome = "approved" if request.decision == "approve" else "failed"
+    updated_run = run.model_copy(update={"outcome": updated_outcome})
+    RUNS[RUNS.index(run)] = updated_run
+
+    return {
+        "run": updated_run,
+        "decision": {
+            "actor": request.actor,
+            "note": request.note,
+            "status": request.decision,
         },
     }

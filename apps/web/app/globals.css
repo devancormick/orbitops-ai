@@ -40,6 +40,11 @@ textarea {
   font: inherit;
 }
 
+button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .shell {
   max-width: 1120px;
   margin: 0 auto;
@@ -299,13 +304,26 @@ textarea {
 }
 
 .field select,
-.field textarea {
+.field textarea,
+.field input {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: #fffdf8;
   padding: 14px 16px;
   color: var(--ink);
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--muted);
+}
+
+.status-note {
+  margin: 0;
+  color: var(--accent);
 }
 
 .plain-list {
