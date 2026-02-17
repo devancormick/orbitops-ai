@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { submitRun } from "../lib/api";
+import { createFile, submitRun } from "../lib/api";
 import { workflows } from "../lib/data";
 
 export function SubmitForm() {
@@ -13,15 +13,28 @@ export function SubmitForm() {
     setPending(true);
     setMessage("");
 
-    const workflow = workflows.find((item) => item.name === formData.get("workflow_name")) ?? workflows[0];
-    const result = await submitRun({
-      workflow_name: String(formData.get("workflow_name")),
-      task_type: workflow.taskType,
-      latency_target: String(formData.get("latency_target")),
-      requires_review: formData.get("requires_review") === "on",
-      context: String(formData.get("context")),
-      workspace: String(formData.get("workspace"))
-    });
+        const workflow = workflows.find((item) => item.name === formData.get("workflow_name")) ?? workflows[0];
+        const filename = String(formData.get("filename") || "").trim();
+        const fileIds: string[] = [];
+        if (filename) {
+          const upload = await createFile({
+            filename,
+            content_type: "application/pdf",
+            workspace: String(formData.get("workspace"))
+          });
+          if (upload.ok) {
+            fileIds.push(upload.file.id);
+          }
+        }
+        const result = await submitRun({
+          workflow_name: String(formData.get("workflow_name")),
+          task_type: workflow.taskType,
+          latency_target: String(formData.get("latency_target")),
+          requires_review: formData.get("requires_review") === "on",
+          context: String(formData.get("context")),
+          workspace: String(formData.get("workspace")),
+          uploaded_file_ids: fileIds
+        });
 
     setPending(false);
     if (!result.ok) {
@@ -68,6 +81,10 @@ export function SubmitForm() {
           rows={6}
           defaultValue="Upload updated vendor registration documents and extract ownership, sanctions, and onboarding notes."
         />
+      </label>
+      <label className="field">
+        <span>Source file name</span>
+        <input name="filename" defaultValue="vendor-registration-update.pdf" />
       </label>
       <label className="checkbox-row">
         <input name="requires_review" type="checkbox" defaultChecked />

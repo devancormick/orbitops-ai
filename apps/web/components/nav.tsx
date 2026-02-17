@@ -5,7 +5,9 @@ const items = [
   { href: "/workflows", label: "Workflows" },
   { href: "/runs", label: "Runs" },
   { href: "/review", label: "Review" },
-  { href: "/submit", label: "New Run" }
+  { href: "/submit", label: "New Run" },
+  { href: "/admin", label: "Admin" },
+  { href: "/auth", label: "Login" }
 ];
 
 export function Navigation() {

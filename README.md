@@ -40,7 +40,9 @@ The current implementation is intentionally lightweight, but it gives the projec
 - run history screen with provider visibility
 - review queue screen for human approval checkpoints
 - new run screen for structured workflow submission
-- API routes for dashboard data, workflow lists, runs, providers, review queue, routing, and simulated execution
+- authentication screen with seeded admin access
+- admin workflow management screen for policy creation
+- API routes for auth, dashboard data, workflow lists, runs, providers, files, review queue, routing, and execution
 
 ## Product Screens
 
@@ -85,13 +87,25 @@ uvicorn main:app --reload
 
 The API exposes:
 
+- `POST /auth/register`
+- `POST /auth/login`
 - `GET /dashboard`
 - `GET /workflows`
+- `POST /workflows`
 - `GET /runs`
+- `POST /runs`
 - `GET /review`
+- `POST /review/{run_id}`
 - `GET /providers`
+- `GET /files`
+- `POST /files`
 - `POST /route`
 - `POST /runs/simulate`
+
+Seeded local admin account:
+
+- email: `admin@orbitops.local`
+- password: `orbitops123`
 
 ## Why This Project Exists
 

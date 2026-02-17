@@ -34,6 +34,7 @@ export type DashboardPayload = {
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const TOKEN_KEY = "orbitops-token";
 
 async function fetchJson<T>(path: string): Promise<T | null> {
   if (!API_URL) {
@@ -48,6 +49,25 @@ async function fetchJson<T>(path: string): Promise<T | null> {
     return (await response.json()) as T;
   } catch {
     return null;
+  }
+}
+
+function getToken(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return window.localStorage.getItem(TOKEN_KEY);
+}
+
+export function storeToken(token: string) {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(TOKEN_KEY, token);
+  }
+}
+
+export function clearToken() {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(TOKEN_KEY);
   }
 }
 
@@ -92,6 +112,25 @@ export async function getDashboardData(): Promise<DashboardPayload> {
   };
 }
 
+async function authedJson(path: string, payload: object) {
+  if (!API_URL) {
+    return null;
+  }
+  const token = getToken();
+  const response = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { "x-auth-token": token } : {})
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    return null;
+  }
+  return response.json();
+}
+
 export async function submitRun(payload: {
   workflow_name: string;
   task_type: string;
@@ -99,6 +138,7 @@ export async function submitRun(payload: {
   requires_review: boolean;
   context: string;
   workspace: string;
+  uploaded_file_ids: string[];
 }) {
   if (!API_URL) {
     return {
@@ -111,17 +151,53 @@ export async function submitRun(payload: {
     };
   }
 
-  const response = await fetch(`${API_URL}/runs/simulate`, {
+  const result = await authedJson("/runs", payload);
+  if (!result) {
+    return { ok: false };
+  }
+  return { ok: true, ...result };
+}
+
+export async function login(payload: { email: string; password: string }) {
+  if (!API_URL) {
+    return { ok: true, token: "demo-token", user: { full_name: "Demo User" } };
+  }
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
-
   if (!response.ok) {
     return { ok: false };
   }
-
   return { ok: true, ...(await response.json()) };
+}
+
+export async function createFile(payload: { filename: string; content_type: string; workspace: string }) {
+  if (!API_URL) {
+    return { ok: true, file: { id: "FILE-DEMO", filename: payload.filename } };
+  }
+  const result = await authedJson("/files", payload);
+  if (!result) {
+    return { ok: false };
+  }
+  return { ok: true, ...result };
+}
+
+export async function createWorkflow(payload: {
+  name: string;
+  task_type: string;
+  primary_model: string;
+  fallback_model: string;
+  review_required: boolean;
+  workspace: string;
+}) {
+  if (!API_URL) {
+    return { ok: true, workflow: { name: payload.name } };
+  }
+  const result = await authedJson("/workflows", payload);
+  if (!result) {
+    return { ok: false };
+  }
+  return { ok: true, ...result };
 }
