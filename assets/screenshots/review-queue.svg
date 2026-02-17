@@ -1,0 +1,38 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="900" fill="#ECE5DA"/>
+  <rect x="36" y="34" width="1368" height="832" rx="28" fill="#FCFAF5" stroke="#DDD4C8"/>
+  <text x="84" y="104" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="16" letter-spacing="1.8">REVIEW QUEUE</text>
+  <text x="84" y="156" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Keep sensitive workflows visible until a human signs off.</text>
+  <rect x="84" y="218" width="444" height="576" rx="24" fill="#FFFFFF" stroke="#E4DBCF"/>
+  <text x="118" y="264" fill="#7A7269" font-family="Arial, Helvetica, sans-serif" font-size="16">Pending approvals</text>
+  <rect x="118" y="300" width="376" height="98" rx="20" fill="#FFF5DF"/>
+  <text x="146" y="338" fill="#A06812" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">RUN-1841</text>
+  <text x="146" y="370" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Policy Delta Check</text>
+  <text x="146" y="394" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="15">Changes detected across 14 clauses, 3 flagged for legal review</text>
+  <rect x="118" y="420" width="376" height="98" rx="20" fill="#F7F1E8"/>
+  <text x="146" y="458" fill="#426B3F" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">RUN-1838</text>
+  <text x="146" y="490" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Vendor Intake Review</text>
+  <text x="146" y="514" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="15">Registration details extracted, sanctions note needs reviewer check</text>
+  <rect x="118" y="540" width="376" height="98" rx="20" fill="#F7F1E8"/>
+  <text x="146" y="578" fill="#426B3F" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">RUN-1834</text>
+  <text x="146" y="610" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Claims Summary Queue</text>
+  <text x="146" y="634" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="15">Structured brief ready, one field regenerated from fallback provider</text>
+  <rect x="578" y="218" width="742" height="576" rx="24" fill="#1C2C22"/>
+  <text x="618" y="264" fill="#A4C0A7" font-family="Arial, Helvetica, sans-serif" font-size="16">Review details</text>
+  <text x="618" y="316" fill="#F3F8EF" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">Policy Delta Check · RUN-1841</text>
+  <text x="618" y="352" fill="#D6E3D2" font-family="Arial, Helvetica, sans-serif" font-size="18">Primary model: GPT-4.1 · Fallback configured: Gemini 2.0 Flash</text>
+  <rect x="618" y="390" width="662" height="164" rx="22" fill="#273B2D"/>
+  <text x="648" y="430" fill="#A4C0A7" font-family="Arial, Helvetica, sans-serif" font-size="15">Structured output summary</text>
+  <text x="648" y="470" fill="#F3F8EF" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">3 clause deltas require legal review</text>
+  <text x="648" y="504" fill="#D6E3D2" font-family="Arial, Helvetica, sans-serif" font-size="17">Sections 4.2, 7.1, and 9.4 increased indemnity exposure and changed notice timing.</text>
+  <text x="648" y="536" fill="#D6E3D2" font-family="Arial, Helvetica, sans-serif" font-size="17">All result fields matched the schema. No fallback route was triggered.</text>
+  <rect x="618" y="580" width="208" height="58" rx="18" fill="#F5F0E6"/>
+  <text x="670" y="617" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">View source files</text>
+  <rect x="844" y="580" width="188" height="58" rx="18" fill="#DDEFD1"/>
+  <text x="894" y="617" fill="#1A4A25" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">Approve</text>
+  <rect x="1050" y="580" width="230" height="58" rx="18" fill="#FFF0D8"/>
+  <text x="1094" y="617" fill="#9A5B0E" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">Send back to queue</text>
+  <rect x="618" y="668" width="662" height="94" rx="22" fill="#273B2D"/>
+  <text x="648" y="706" fill="#A4C0A7" font-family="Arial, Helvetica, sans-serif" font-size="15">Audit trail</text>
+  <text x="648" y="738" fill="#F3F8EF" font-family="Arial, Helvetica, sans-serif" font-size="18">08:41 AM route selected · 08:42 AM schema validated · 08:44 AM queued for reviewer</text>
+</svg>

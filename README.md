@@ -33,6 +33,28 @@ This repository now includes a real starter scaffold instead of documentation on
 
 The current implementation is intentionally lightweight, but it gives the project a usable starting point for a real product build.
 
+## Product Screens
+
+These visuals are based on the actual OrbitOps product structure in this repo. They are meant to help a new client understand the dashboard, routing logic, and human review flow quickly.
+
+### Dashboard Overview
+
+Shows the main operations workspace with workflow health, run history, and live metrics.
+
+![OrbitOps dashboard overview](assets/screenshots/dashboard-overview.svg)
+
+### Routing Center
+
+Shows how a workflow is evaluated, how the model route is selected, and how fallback and governance rules are applied.
+
+![OrbitOps routing center](assets/screenshots/routing-center.svg)
+
+### Review Queue
+
+Shows the approval flow for sensitive runs, including structured output review and audit history.
+
+![OrbitOps review queue](assets/screenshots/review-queue.svg)
+
 ## Local Development
 
 ### Web

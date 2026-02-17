@@ -1,0 +1,49 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="900" fill="#F0EBE2"/>
+  <rect x="40" y="40" width="1360" height="820" rx="30" fill="#FFFDF9" stroke="#DED4C7"/>
+  <text x="86" y="106" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="16" letter-spacing="1.8">MODEL ROUTING CENTER</text>
+  <text x="86" y="156" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700">Choose the best provider for each workflow without losing control.</text>
+  <rect x="84" y="214" width="400" height="570" rx="24" fill="#FFFFFF" stroke="#E5DCCD"/>
+  <text x="118" y="260" fill="#7A7269" font-family="Arial, Helvetica, sans-serif" font-size="16">Incoming task</text>
+  <text x="118" y="314" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Policy Delta Check</text>
+  <text x="118" y="350" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="18">Compare updated policy documents and return structured risk deltas.</text>
+  <rect x="118" y="396" width="332" height="68" rx="18" fill="#F6F1E8"/>
+  <text x="144" y="425" fill="#7A7269" font-family="Arial, Helvetica, sans-serif" font-size="14">Input type</text>
+  <text x="144" y="448" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">Two uploaded policy files</text>
+  <rect x="118" y="482" width="332" height="68" rx="18" fill="#F6F1E8"/>
+  <text x="144" y="511" fill="#7A7269" font-family="Arial, Helvetica, sans-serif" font-size="14">Output schema</text>
+  <text x="144" y="534" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">JSON risk-delta report</text>
+  <rect x="118" y="568" width="332" height="68" rx="18" fill="#F6F1E8"/>
+  <text x="144" y="597" fill="#7A7269" font-family="Arial, Helvetica, sans-serif" font-size="14">Routing mode</text>
+  <text x="144" y="620" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">Balanced, review required</text>
+  <rect x="118" y="672" width="186" height="48" rx="16" fill="#183923"/>
+  <text x="152" y="703" fill="#F5FAF1" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">Run evaluation</text>
+  <rect x="536" y="214" width="362" height="570" rx="24" fill="#1C2D22"/>
+  <text x="570" y="260" fill="#A8C4AA" font-family="Arial, Helvetica, sans-serif" font-size="16">Decision trace</text>
+  <rect x="570" y="296" width="294" height="94" rx="20" fill="#273B2D"/>
+  <text x="596" y="330" fill="#F4FAF0" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">1. Match workflow policy</text>
+  <text x="596" y="358" fill="#D7E4D6" font-family="Arial, Helvetica, sans-serif" font-size="15">Task type: compare</text>
+  <rect x="570" y="414" width="294" height="94" rx="20" fill="#273B2D"/>
+  <text x="596" y="448" fill="#F4FAF0" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">2. Evaluate output shape</text>
+  <text x="596" y="476" fill="#D7E4D6" font-family="Arial, Helvetica, sans-serif" font-size="15">Schema-locked JSON required</text>
+  <rect x="570" y="532" width="294" height="94" rx="20" fill="#273B2D"/>
+  <text x="596" y="566" fill="#F4FAF0" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">3. Assign review lane</text>
+  <text x="596" y="594" fill="#D7E4D6" font-family="Arial, Helvetica, sans-serif" font-size="15">Legal ops approval checkpoint</text>
+  <rect x="570" y="650" width="294" height="94" rx="20" fill="#31533B"/>
+  <text x="596" y="684" fill="#F4FAF0" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">4. Set fallback path</text>
+  <text x="596" y="712" fill="#D7E4D6" font-family="Arial, Helvetica, sans-serif" font-size="15">Switch if latency or validation fails</text>
+  <rect x="950" y="214" width="404" height="570" rx="24" fill="#FFFFFF" stroke="#E5DCCD"/>
+  <text x="984" y="260" fill="#7A7269" font-family="Arial, Helvetica, sans-serif" font-size="16">Selected route</text>
+  <rect x="984" y="300" width="336" height="114" rx="22" fill="#E8F3DE" stroke="#C7DAB9"/>
+  <text x="1014" y="338" fill="#426B3F" font-family="Arial, Helvetica, sans-serif" font-size="15">Primary provider</text>
+  <text x="1014" y="374" fill="#173822" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700">OpenAI · GPT-4.1</text>
+  <text x="1014" y="398" fill="#426B3F" font-family="Arial, Helvetica, sans-serif" font-size="16">Best fit for comparison depth and structured consistency</text>
+  <rect x="984" y="442" width="336" height="114" rx="22" fill="#F7F1E6" stroke="#E5DCCD"/>
+  <text x="1014" y="480" fill="#7A7269" font-family="Arial, Helvetica, sans-serif" font-size="15">Fallback provider</text>
+  <text x="1014" y="516" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700">Google · Gemini 2.0 Flash</text>
+  <text x="1014" y="540" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="16">Used if primary route times out or validation retries fail</text>
+  <rect x="984" y="586" width="336" height="128" rx="22" fill="#FFF8EB" stroke="#F0D8AA"/>
+  <text x="1014" y="624" fill="#A06812" font-family="Arial, Helvetica, sans-serif" font-size="15">Governance notes</text>
+  <text x="1014" y="660" fill="#1C1A18" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Reviewer required before publish</text>
+  <text x="1014" y="692" fill="#6C645B" font-family="Arial, Helvetica, sans-serif" font-size="16">Route, output schema, and final decision stored in audit log.</text>
+</svg>
