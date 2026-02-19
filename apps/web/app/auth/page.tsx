@@ -8,7 +8,7 @@ export default function AuthPage() {
       <main className="shell stack">
         <section className="section-heading">
           <p className="eyebrow">Authentication</p>
-          <h1 className="page-title">Sign in to create runs, upload files, and manage workflows.</h1>
+          <h1 className="page-title">Sign in to launch intake sessions, generate agreements, and manage templates.</h1>
         </section>
         <AuthForm />
       </main>

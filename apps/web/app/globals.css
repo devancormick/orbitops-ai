@@ -332,6 +332,13 @@ button:disabled {
   color: var(--muted);
 }
 
+.preview-panel {
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #fffdf8;
+}
+
 @media (max-width: 900px) {
   .hero,
   .split,

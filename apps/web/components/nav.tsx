@@ -2,10 +2,10 @@ import Link from "next/link";
 
 const items = [
   { href: "/", label: "Overview" },
-  { href: "/workflows", label: "Workflows" },
-  { href: "/runs", label: "Runs" },
+  { href: "/workflows", label: "Templates" },
+  { href: "/runs", label: "Documents" },
   { href: "/review", label: "Review" },
-  { href: "/submit", label: "New Run" },
+  { href: "/submit", label: "New Intake" },
   { href: "/admin", label: "Admin" },
   { href: "/auth", label: "Login" }
 ];

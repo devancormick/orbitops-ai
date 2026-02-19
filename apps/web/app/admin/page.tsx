@@ -8,17 +8,17 @@ export default function AdminPage() {
       <main className="shell stack">
         <section className="section-heading">
           <p className="eyebrow">Admin controls</p>
-          <h1 className="page-title">Manage workflow templates and shape how the routing system behaves.</h1>
+          <h1 className="page-title">Manage contract templates and keep the private demo easy to extend.</h1>
         </section>
         <section className="split">
           <AdminWorkflowForm />
           <article className="card">
             <p className="eyebrow">Current admin scope</p>
-            <h2>Workflow governance is built in.</h2>
+            <h2>Template governance is built in.</h2>
             <ul className="plain-list">
-              <li>Create active workflow templates by task type and workspace</li>
-              <li>Set primary and fallback models per workflow</li>
-              <li>Require review at the workflow policy level</li>
+              <li>Create active agreement templates by workspace</li>
+              <li>Define the intake structure agents will follow</li>
+              <li>Require broker review at the template policy level</li>
               <li>Use role-checked API mutations with session tokens</li>
             </ul>
           </article>

@@ -7,19 +7,19 @@ export default function SubmitPage() {
       <Navigation />
       <main className="shell stack">
         <section className="section-heading">
-          <p className="eyebrow">New run</p>
-          <h1 className="page-title">Start a workflow with structured inputs, review rules, and route intent.</h1>
+          <p className="eyebrow">New intake</p>
+          <h1 className="page-title">Guide the agent through the required deal fields and generate the agreement in one flow.</h1>
         </section>
         <section className="split">
           <SubmitForm />
           <article className="card">
             <p className="eyebrow">Expected output</p>
-            <h2>Structured, traceable, review-ready.</h2>
+            <h2>Structured, agent-friendly, delivery-ready.</h2>
             <ul className="plain-list">
-              <li>Route selected by workflow policy and latency target</li>
-              <li>Schema-validated output stored with the run record</li>
-              <li>Fallback path preserved if the primary model fails</li>
-              <li>Approval queue triggered automatically when needed</li>
+              <li>AI-style guided intake for the contract fields that matter</li>
+              <li>Template-aware agreement generation with structured preview data</li>
+              <li>Simulated email and PDF download actions for proposal demos</li>
+              <li>Broker review flag applied automatically when required</li>
             </ul>
           </article>
         </section>

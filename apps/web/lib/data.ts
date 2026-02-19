@@ -1,126 +1,122 @@
-export type Workflow = {
-  name: string;
-  taskType: "summarize" | "extract" | "classify" | "compare" | "draft";
-  goal: string;
-  route: string;
-  status: "Healthy" | "Needs review" | "Watching";
-  reviewRequired: boolean;
-  volume: string;
+export type ContractField = {
+  key: string;
+  label: string;
+  question: string;
+  required: boolean;
 };
 
-export type RunRecord = {
+export type ContractTemplate = {
+  id?: number;
+  name: string;
+  template_key: string;
+  description: string;
+  agreement_type: "listing_agreement" | "purchase_sale_agreement";
+  review_required: boolean;
+  workspace: string;
+  active: boolean;
+  fields: ContractField[];
+};
+
+export type GeneratedDocument = {
   id: string;
-  workflow: string;
-  model: string;
-  provider: string;
-  outcome: "approved" | "in review" | "fallback used" | "failed";
-  submittedAt: string;
+  template_name: string;
+  template_key: string;
+  agreement_type: string;
+  workspace: string;
+  status: "draft" | "pending_review" | "ready" | "emailed" | "downloaded";
+  generated_at: string;
+  requested_by: string;
+  recipient_email: string;
+  preview_title: string;
+  summary: string;
+  field_values: Record<string, string>;
+  preview_markdown: string;
+  email_status: string;
+  download_status: string;
 };
 
 export type ReviewItem = {
   id: string;
-  workflow: string;
-  priority: "High" | "Medium";
+  template_name: string;
   summary: string;
   reviewer: string;
-  age: string;
+  priority: "high" | "medium";
+  status: "open" | "approved" | "rerun_requested";
+  requested_by: string;
 };
 
-export const workflows: Workflow[] = [
+export const templates: ContractTemplate[] = [
   {
-    name: "Vendor Intake Review",
-    taskType: "extract",
-    goal: "Extract registration data, flag risk markers, and draft onboarding notes.",
-    route: "Claude Sonnet -> GPT-4.1 mini fallback",
-    status: "Healthy",
-    reviewRequired: true,
-    volume: "42 runs this week"
+    name: "Listing Agreement",
+    template_key: "listing-agreement",
+    description: "Capture seller details, listing dates, price, and commission terms for a ready-to-review listing packet.",
+    agreement_type: "listing_agreement",
+    review_required: true,
+    workspace: "Sunline Realty",
+    active: true,
+    fields: [
+      { key: "property_address", label: "Property address", question: "What property address is being listed?", required: true },
+      { key: "seller_name", label: "Seller name", question: "Who is the seller or owner?", required: true },
+      { key: "listing_price", label: "Listing price", question: "What listing price should appear in the contract?", required: true },
+      { key: "listing_start_date", label: "Listing start date", question: "When should the listing begin?", required: true },
+      { key: "listing_end_date", label: "Listing end date", question: "When should the listing expire?", required: true },
+      { key: "commission_rate", label: "Commission rate", question: "What commission rate applies?", required: true }
+    ]
   },
   {
-    name: "Policy Delta Check",
-    taskType: "compare",
-    goal: "Compare policy revisions, classify changes, and prepare legal ops summaries.",
-    route: "GPT-4.1 -> Gemini 2.0 Flash fallback",
-    status: "Needs review",
-    reviewRequired: true,
-    volume: "18 runs this week"
-  },
-  {
-    name: "Claims Summary Queue",
-    taskType: "summarize",
-    goal: "Condense claim packs into investigator-ready structured briefs.",
-    route: "Gemini 2.0 Flash -> Claude Sonnet fallback",
-    status: "Healthy",
-    reviewRequired: false,
-    volume: "67 runs this week"
-  },
-  {
-    name: "Partner SLA Classifier",
-    taskType: "classify",
-    goal: "Classify inbound support escalations by SLA tier and response ownership.",
-    route: "GPT-4.1 mini -> Claude Sonnet fallback",
-    status: "Watching",
-    reviewRequired: false,
-    volume: "109 runs this week"
+    name: "Purchase & Sale Agreement",
+    template_key: "purchase-sale-agreement",
+    description: "Collect buyer, seller, price, earnest money, and closing terms through a guided AI-style intake flow.",
+    agreement_type: "purchase_sale_agreement",
+    review_required: true,
+    workspace: "Sunline Realty",
+    active: true,
+    fields: [
+      { key: "property_address", label: "Property address", question: "What property address should appear on the agreement?", required: true },
+      { key: "buyer_name", label: "Buyer name", question: "Who is the buyer?", required: true },
+      { key: "seller_name", label: "Seller name", question: "Who is the seller?", required: true },
+      { key: "purchase_price", label: "Purchase price", question: "What is the agreed purchase price?", required: true },
+      { key: "closing_date", label: "Closing date", question: "What is the closing date?", required: true },
+      { key: "earnest_money", label: "Earnest money", question: "How much earnest money should be included?", required: true }
+    ]
   }
 ];
 
-export const runHistory: RunRecord[] = [
+export const documentHistory: GeneratedDocument[] = [
   {
-    id: "RUN-1842",
-    workflow: "Vendor Intake Review",
-    model: "claude-3-5-sonnet",
-    provider: "anthropic",
-    outcome: "approved",
-    submittedAt: "08:31 AM"
-  },
-  {
-    id: "RUN-1841",
-    workflow: "Policy Delta Check",
-    model: "gpt-4.1",
-    provider: "openai",
-    outcome: "in review",
-    submittedAt: "08:12 AM"
-  },
-  {
-    id: "RUN-1839",
-    workflow: "Claims Summary Queue",
-    model: "gemini-2.0-flash",
-    provider: "google",
-    outcome: "fallback used",
-    submittedAt: "07:44 AM"
-  },
-  {
-    id: "RUN-1835",
-    workflow: "Partner SLA Classifier",
-    model: "gpt-4.1-mini",
-    provider: "openai",
-    outcome: "approved",
-    submittedAt: "07:03 AM"
+    id: "DOC-4021",
+    template_name: "Listing Agreement",
+    template_key: "listing-agreement",
+    agreement_type: "listing_agreement",
+    workspace: "Sunline Realty",
+    status: "pending_review",
+    generated_at: "09:12 AM",
+    requested_by: "D. Cormick",
+    recipient_email: "agent@sunlinerealty.com",
+    preview_title: "Listing Agreement for 414 Maple Ridge Drive",
+    summary: "Listing packet generated and waiting for broker review before delivery.",
+    field_values: {
+      property_address: "414 Maple Ridge Drive, Nashville, TN",
+      seller_name: "Claire Hudson",
+      listing_price: "$685,000",
+      listing_start_date: "2026-02-24",
+      listing_end_date: "2026-08-24",
+      commission_rate: "5.5%"
+    },
+    preview_markdown: "# Listing Agreement\n\n- Property Address: 414 Maple Ridge Drive, Nashville, TN",
+    email_status: "not_sent",
+    download_status: "ready"
   }
 ];
 
 export const reviewQueue: ReviewItem[] = [
   {
-    id: "RUN-1841",
-    workflow: "Policy Delta Check",
-    priority: "High",
-    summary: "3 clauses changed indemnity language and one notice window tightened.",
-    reviewer: "Legal Ops",
-    age: "12 min"
-  },
-  {
-    id: "RUN-1838",
-    workflow: "Vendor Intake Review",
-    priority: "Medium",
-    summary: "Sanctions note and beneficial ownership section need human confirmation.",
-    reviewer: "Risk Team",
-    age: "24 min"
+    id: "DOC-4021",
+    template_name: "Listing Agreement",
+    summary: "Commission and listing dates should be confirmed before release.",
+    reviewer: "Broker Review",
+    priority: "high",
+    status: "open",
+    requested_by: "D. Cormick"
   }
-];
-
-export const providerHealth = [
-  { name: "Anthropic", status: "Online", latency: "2.3s", strength: "Extraction" },
-  { name: "OpenAI", status: "Online", latency: "1.8s", strength: "Comparison" },
-  { name: "Google", status: "Online", latency: "1.4s", strength: "High-volume summaries" }
 ];

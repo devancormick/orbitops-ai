@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "OrbitOps AI",
-  description: "Multi-AI operations workflow hub"
+  description: "Private real estate contract generator demo"
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

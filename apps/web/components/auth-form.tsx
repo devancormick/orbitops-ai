@@ -5,7 +5,7 @@ import { useState } from "react";
 import { clearToken, login, storeToken } from "../lib/api";
 
 export function AuthForm() {
-  const [message, setMessage] = useState("Use `admin@orbitops.local` / `orbitops123` for the seeded admin account.");
+  const [message, setMessage] = useState("Use `admin@orbitops.local` / `orbitops123` to access the seeded private demo account.");
   const [pending, setPending] = useState(false);
 
   return (
@@ -26,7 +26,7 @@ export function AuthForm() {
           return;
         }
         storeToken(result.token);
-        setMessage(`Logged in as ${result.user.full_name}. Auth token stored in this browser.`);
+        setMessage(`Logged in as ${result.user.full_name}. This browser can now start intake sessions and manage templates.`);
       }}
     >
       <label className="field">
