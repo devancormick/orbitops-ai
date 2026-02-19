@@ -1,24 +1,20 @@
 # OrbitOps API
 
-FastAPI service for workflow routing, provider selection, validation hooks, and execution audit primitives.
+FastAPI service for the real estate contract generator demo. It handles template management, guided intake, document generation, simulated delivery, and local auth.
 
 ## Available endpoints
 
 - `POST /auth/register`
 - `POST /auth/login`
-- `GET /health`
 - `GET /dashboard`
-- `GET /workflows`
-- `POST /workflows`
-- `GET /runs`
-- `POST /runs`
-- `GET /review`
-- `POST /review/{run_id}`
-- `GET /providers`
-- `GET /files`
-- `POST /files`
-- `POST /route`
-- `POST /runs/simulate`
+- `GET /health`
+- `GET /templates`
+- `POST /templates`
+- `POST /intake/start`
+- `POST /documents/generate`
+- `GET /documents`
+- `POST /documents/{document_id}/email`
+- `POST /documents/{document_id}/download`
 
 ## Run locally
 

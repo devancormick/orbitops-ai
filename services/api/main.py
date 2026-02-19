@@ -1,11 +1,12 @@
 import hashlib
+import json
 import os
 import secrets
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,101 +16,12 @@ from pydantic import BaseModel, Field
 DB_PATH = Path(os.getenv("ORBITOPS_DB_PATH", Path(__file__).with_name("orbitops.db")))
 
 
-class WorkflowTemplate(BaseModel):
-    id: int | None = None
-    name: str
-    task_type: Literal["summarize", "extract", "classify", "compare", "draft"]
-    primary_model: str
-    fallback_model: str
-    review_required: bool
-    workspace: str = "Operations Workspace"
-    active: bool = True
-
-
-class WorkflowCreate(BaseModel):
-    name: str = Field(min_length=3)
-    task_type: Literal["summarize", "extract", "classify", "compare", "draft"]
-    primary_model: str = Field(min_length=3)
-    fallback_model: str = Field(min_length=3)
-    review_required: bool = False
-    workspace: str = "Operations Workspace"
-
-
-class TaskSubmission(BaseModel):
-    workflow_name: str = Field(min_length=3)
-    task_type: Literal["summarize", "extract", "classify", "compare", "draft"]
-    latency_target: Literal["fast", "balanced", "thorough"] = "balanced"
-    requires_review: bool = False
-    context: str = Field(min_length=10)
-    workspace: str = "Operations Workspace"
-    uploaded_file_ids: list[str] = []
-
-
-class RouteDecision(BaseModel):
-    provider: str
-    model: str
-    fallback_model: str
-    reason: str
-    review_required: bool
-
-
-class RunRecord(BaseModel):
-    id: str
-    workflow: str
-    workspace: str
-    provider: str
-    model: str
-    outcome: Literal["approved", "in_review", "fallback_used", "failed"]
-    submitted_at: str
-    context: str
-    requested_by: str
-
-
-class ReviewItem(BaseModel):
-    id: str
-    workflow: str
-    summary: str
-    reviewer: str
-    priority: Literal["high", "medium"]
-    status: Literal["open", "pending_approval", "approved", "rerun_requested"]
-    requested_by: str
-
-
-class ProviderHealth(BaseModel):
-    provider: str
-    status: Literal["online", "degraded"]
-    median_latency: str
-    strongest_for: str
-
-
-class UploadedFile(BaseModel):
-    id: str
-    filename: str
-    content_type: str
-    workspace: str
-    uploaded_at: str
-    status: Literal["ready", "processing"]
-    uploaded_by: str
-
-
-class FileUploadRequest(BaseModel):
-    filename: str = Field(min_length=3)
-    content_type: str = "application/pdf"
-    workspace: str = "Operations Workspace"
-
-
-class ReviewDecisionRequest(BaseModel):
-    decision: Literal["approve", "request_rerun"]
-    actor: str = Field(min_length=2)
-    note: str = Field(min_length=5)
-
-
 class RegisterRequest(BaseModel):
     email: str = Field(min_length=5)
     password: str = Field(min_length=8)
     full_name: str = Field(min_length=2)
-    workspace: str = "Operations Workspace"
-    role: Literal["admin", "operator", "reviewer"] = "admin"
+    workspace: str = "Sunline Realty"
+    role: Literal["admin", "agent", "reviewer"] = "admin"
 
 
 class LoginRequest(BaseModel):
@@ -122,20 +34,85 @@ class SessionResponse(BaseModel):
     user: dict[str, str]
 
 
-PROVIDER_MAP = {
-    "claude-3-5-sonnet": "anthropic",
-    "gpt-4.1": "openai",
-    "gpt-4.1-mini": "openai",
-    "gemini-2.0-flash": "google",
-}
+class ContractFieldDefinition(BaseModel):
+    key: str
+    label: str
+    question: str
+    required: bool = True
 
-PROVIDER_HEALTH = [
-    ProviderHealth(provider="anthropic", status="online", median_latency="2.3s", strongest_for="Document extraction"),
-    ProviderHealth(provider="openai", status="online", median_latency="1.8s", strongest_for="Policy comparison"),
-    ProviderHealth(provider="google", status="online", median_latency="1.4s", strongest_for="High-volume summaries"),
-]
 
-app = FastAPI(title="OrbitOps AI API", version="0.2.0")
+class ContractTemplate(BaseModel):
+    id: int | None = None
+    name: str
+    template_key: str
+    description: str
+    agreement_type: Literal["listing_agreement", "purchase_sale_agreement"]
+    review_required: bool
+    workspace: str = "Sunline Realty"
+    active: bool = True
+    fields: list[ContractFieldDefinition]
+
+
+class ContractTemplateCreate(BaseModel):
+    name: str = Field(min_length=3)
+    template_key: str = Field(min_length=3)
+    description: str = Field(min_length=10)
+    agreement_type: Literal["listing_agreement", "purchase_sale_agreement"]
+    review_required: bool = False
+    workspace: str = "Sunline Realty"
+    fields: list[ContractFieldDefinition] = Field(min_length=1)
+
+
+class ContractIntakeRequest(BaseModel):
+    template_key: str = Field(min_length=3)
+    workspace: str = "Sunline Realty"
+    agent_name: str = Field(min_length=2)
+    client_email: str = Field(min_length=5)
+    notes: str = ""
+
+
+class ContractGenerationRequest(BaseModel):
+    template_key: str = Field(min_length=3)
+    workspace: str = "Sunline Realty"
+    agent_name: str = Field(min_length=2)
+    client_email: str = Field(min_length=5)
+    responses: dict[str, str]
+    notes: str = ""
+
+
+class DocumentDeliveryRequest(BaseModel):
+    email: str = Field(min_length=5)
+
+
+class GeneratedDocument(BaseModel):
+    id: str
+    template_name: str
+    template_key: str
+    agreement_type: str
+    workspace: str
+    status: Literal["draft", "pending_review", "ready", "emailed", "downloaded"]
+    generated_at: str
+    requested_by: str
+    recipient_email: str
+    preview_title: str
+    summary: str
+    field_values: dict[str, str]
+    preview_markdown: str
+    email_status: str
+    download_status: str
+
+
+class ReviewItem(BaseModel):
+    id: str
+    template_name: str
+    summary: str
+    reviewer: str
+    priority: Literal["high", "medium"]
+    status: Literal["open", "approved", "rerun_requested"]
+    requested_by: str
+
+
+app = FastAPI(title="OrbitOps AI API", version="0.3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -168,6 +145,67 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 
+def field_definitions(rows: list[sqlite3.Row]) -> list[ContractFieldDefinition]:
+    return [
+        ContractFieldDefinition(
+            key=row["field_key"],
+            label=row["label"],
+            question=row["question"],
+            required=bool(row["required"]),
+        )
+        for row in rows
+    ]
+
+
+def base_fields(template_key: str) -> list[dict[str, Any]]:
+    if template_key == "purchase-sale-agreement":
+        return [
+            {"key": "property_address", "label": "Property address", "question": "What property address should appear on the agreement?"},
+            {"key": "buyer_name", "label": "Buyer name", "question": "Who is the buyer on the contract?"},
+            {"key": "seller_name", "label": "Seller name", "question": "Who is the seller on the contract?"},
+            {"key": "purchase_price", "label": "Purchase price", "question": "What is the agreed purchase price?"},
+            {"key": "closing_date", "label": "Closing date", "question": "What is the closing date?"},
+            {"key": "earnest_money", "label": "Earnest money", "question": "How much earnest money will be deposited?"},
+        ]
+    return [
+        {"key": "property_address", "label": "Property address", "question": "What property address is being listed?"},
+        {"key": "seller_name", "label": "Seller name", "question": "Who is the seller or owner?"},
+        {"key": "listing_price", "label": "Listing price", "question": "What listing price should be used?"},
+        {"key": "listing_start_date", "label": "Listing start date", "question": "When does the listing begin?"},
+        {"key": "listing_end_date", "label": "Listing end date", "question": "When does the listing expire?"},
+        {"key": "commission_rate", "label": "Commission rate", "question": "What commission rate should appear on the agreement?"},
+    ]
+
+
+def ensure_template_seed(
+    conn: sqlite3.Connection,
+    name: str,
+    template_key: str,
+    description: str,
+    agreement_type: str,
+    review_required: bool,
+    workspace: str,
+) -> None:
+    existing = conn.execute("SELECT id FROM templates WHERE template_key = ?", (template_key,)).fetchone()
+    if existing is not None:
+        return
+    cursor = conn.execute(
+        """
+        INSERT INTO templates (name, template_key, description, agreement_type, review_required, workspace, active)
+        VALUES (?, ?, ?, ?, ?, ?, 1)
+        """,
+        (name, template_key, description, agreement_type, int(review_required), workspace),
+    )
+    for field in base_fields(template_key):
+        conn.execute(
+            """
+            INSERT INTO template_fields (template_id, field_key, label, question, required)
+            VALUES (?, ?, ?, ?, 1)
+            """,
+            (cursor.lastrowid, field["key"], field["label"], field["question"]),
+        )
+
+
 def initialize_database() -> None:
     with db() as conn:
         conn.executescript(
@@ -186,51 +224,60 @@ def initialize_database() -> None:
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             );
-            CREATE TABLE IF NOT EXISTS workflows (
+            CREATE TABLE IF NOT EXISTS templates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL,
-                task_type TEXT NOT NULL,
-                primary_model TEXT NOT NULL,
-                fallback_model TEXT NOT NULL,
+                name TEXT NOT NULL,
+                template_key TEXT UNIQUE NOT NULL,
+                description TEXT NOT NULL,
+                agreement_type TEXT NOT NULL,
                 review_required INTEGER NOT NULL,
                 workspace TEXT NOT NULL,
                 active INTEGER NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS files (
+            CREATE TABLE IF NOT EXISTS template_fields (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                template_id INTEGER NOT NULL,
+                field_key TEXT NOT NULL,
+                label TEXT NOT NULL,
+                question TEXT NOT NULL,
+                required INTEGER NOT NULL,
+                FOREIGN KEY (template_id) REFERENCES templates(id)
+            );
+            CREATE TABLE IF NOT EXISTS intake_sessions (
                 id TEXT PRIMARY KEY,
-                filename TEXT NOT NULL,
-                content_type TEXT NOT NULL,
+                template_key TEXT NOT NULL,
                 workspace TEXT NOT NULL,
-                uploaded_at TEXT NOT NULL,
+                agent_name TEXT NOT NULL,
+                client_email TEXT NOT NULL,
+                notes TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS generated_documents (
+                id TEXT PRIMARY KEY,
+                template_key TEXT NOT NULL,
+                template_name TEXT NOT NULL,
+                agreement_type TEXT NOT NULL,
+                workspace TEXT NOT NULL,
                 status TEXT NOT NULL,
-                uploaded_by TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS runs (
-                id TEXT PRIMARY KEY,
-                workflow TEXT NOT NULL,
-                workspace TEXT NOT NULL,
-                provider TEXT NOT NULL,
-                model TEXT NOT NULL,
-                fallback_model TEXT NOT NULL,
-                outcome TEXT NOT NULL,
-                submitted_at TEXT NOT NULL,
-                context TEXT NOT NULL,
-                requested_by TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS run_files (
-                run_id TEXT NOT NULL,
-                file_id TEXT NOT NULL
+                generated_at TEXT NOT NULL,
+                requested_by TEXT NOT NULL,
+                recipient_email TEXT NOT NULL,
+                preview_title TEXT NOT NULL,
+                summary TEXT NOT NULL,
+                preview_markdown TEXT NOT NULL,
+                field_values_json TEXT NOT NULL,
+                email_status TEXT NOT NULL,
+                download_status TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS reviews (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                run_id TEXT NOT NULL,
-                workflow TEXT NOT NULL,
+                document_id TEXT NOT NULL,
+                template_name TEXT NOT NULL,
                 summary TEXT NOT NULL,
                 reviewer TEXT NOT NULL,
                 priority TEXT NOT NULL,
                 status TEXT NOT NULL,
-                requested_by TEXT NOT NULL,
-                note TEXT DEFAULT ''
+                requested_by TEXT NOT NULL
             );
             """
         )
@@ -244,79 +291,80 @@ def initialize_database() -> None:
                 (
                     "admin@orbitops.local",
                     hash_password("orbitops123"),
-                    "OrbitOps Admin",
-                    "Operations Workspace",
+                    "D. Cormick",
+                    "Sunline Realty",
                     "admin",
                 ),
             )
 
-        if conn.execute("SELECT COUNT(*) FROM workflows").fetchone()[0] == 0:
-            seed_workflows = [
-                ("Vendor Intake Review", "extract", "claude-3-5-sonnet", "gpt-4.1-mini", 1, "Operations Workspace", 1),
-                ("Policy Delta Check", "compare", "gpt-4.1", "gemini-2.0-flash", 1, "Legal Ops", 1),
-                ("Claims Summary Queue", "summarize", "gemini-2.0-flash", "claude-3-5-sonnet", 0, "Claims Ops", 1),
-                ("Partner SLA Classifier", "classify", "gpt-4.1-mini", "claude-3-5-sonnet", 0, "Support Ops", 1),
-            ]
-            conn.executemany(
-                """
-                INSERT INTO workflows (name, task_type, primary_model, fallback_model, review_required, workspace, active)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                seed_workflows,
-            )
+        ensure_template_seed(
+            conn,
+            "Listing Agreement",
+            "listing-agreement",
+            "Guided listing contract flow for property owners, commission terms, and listing dates.",
+            "listing_agreement",
+            True,
+            "Sunline Realty",
+        )
+        ensure_template_seed(
+            conn,
+            "Purchase & Sale Agreement",
+            "purchase-sale-agreement",
+            "Guided purchase contract flow for buyers, sellers, price, earnest money, and closing.",
+            "purchase_sale_agreement",
+            True,
+            "Sunline Realty",
+        )
 
-        if conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0] == 0:
-            conn.executemany(
+        if conn.execute("SELECT COUNT(*) FROM generated_documents").fetchone()[0] == 0:
+            seed_values = {
+                "property_address": "414 Maple Ridge Drive, Nashville, TN",
+                "seller_name": "Claire Hudson",
+                "listing_price": "$685,000",
+                "listing_start_date": "2026-02-24",
+                "listing_end_date": "2026-08-24",
+                "commission_rate": "5.5%",
+            }
+            conn.execute(
                 """
-                INSERT INTO runs (id, workflow, workspace, provider, model, fallback_model, outcome, submitted_at, context, requested_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO generated_documents
+                (id, template_key, template_name, agreement_type, workspace, status, generated_at, requested_by, recipient_email,
+                 preview_title, summary, preview_markdown, field_values_json, email_status, download_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                [
-                    (
-                        "RUN-1842",
-                        "Vendor Intake Review",
-                        "Operations Workspace",
-                        "anthropic",
-                        "claude-3-5-sonnet",
-                        "gpt-4.1-mini",
-                        "approved",
-                        "08:31 AM",
-                        "Extract vendor registration details and sanctions notes.",
-                        "OrbitOps Admin",
-                    ),
-                    (
-                        "RUN-1841",
-                        "Policy Delta Check",
-                        "Legal Ops",
-                        "openai",
-                        "gpt-4.1",
-                        "gemini-2.0-flash",
-                        "in_review",
-                        "08:12 AM",
-                        "Compare updated policy clauses and surface legal deltas.",
-                        "OrbitOps Admin",
-                    ),
-                ],
+                (
+                    "DOC-4021",
+                    "listing-agreement",
+                    "Listing Agreement",
+                    "listing_agreement",
+                    "Sunline Realty",
+                    "pending_review",
+                    "09:12 AM",
+                    "D. Cormick",
+                    "agent@sunlinerealty.com",
+                    "Listing Agreement for 414 Maple Ridge Drive",
+                    "Listing packet generated and waiting for broker review before delivery.",
+                    render_preview("Listing Agreement", seed_values),
+                    json.dumps(seed_values),
+                    "not_sent",
+                    "ready",
+                ),
             )
             conn.execute(
                 """
-                INSERT INTO reviews (run_id, workflow, summary, reviewer, priority, status, requested_by, note)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO reviews (document_id, template_name, summary, reviewer, priority, status, requested_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    "RUN-1841",
-                    "Policy Delta Check",
-                    "3 clauses changed indemnity language and need legal ops review.",
-                    "Legal Ops",
+                    "DOC-4021",
+                    "Listing Agreement",
+                    "Commission and listing dates should be confirmed before release.",
+                    "Broker Review",
                     "high",
                     "open",
-                    "OrbitOps Admin",
-                    "",
+                    "D. Cormick",
                 ),
             )
-
-
-initialize_database()
 
 
 def get_user_from_token(token: str | None) -> sqlite3.Row:
@@ -345,80 +393,59 @@ def require_admin(token: str | None) -> sqlite3.Row:
     return user
 
 
-def next_run_id(conn: sqlite3.Connection) -> str:
-    latest = conn.execute("SELECT id FROM runs ORDER BY id DESC LIMIT 1").fetchone()
-    if latest is None:
-        return "RUN-1841"
-    return f"RUN-{int(latest['id'].split('-')[1]) + 1}"
+def next_sequence_id(conn: sqlite3.Connection, table: str, prefix: str) -> str:
+    row = conn.execute(f"SELECT id FROM {table} ORDER BY id DESC LIMIT 1").fetchone()
+    if row is None:
+        return f"{prefix}-1001"
+    return f"{prefix}-{int(row['id'].split('-')[1]) + 1}"
 
 
-def next_file_id(conn: sqlite3.Connection) -> str:
-    latest = conn.execute("SELECT id FROM files ORDER BY id DESC LIMIT 1").fetchone()
-    if latest is None:
-        return "FILE-241"
-    return f"FILE-{int(latest['id'].split('-')[1]) + 1}"
+def template_with_fields(conn: sqlite3.Connection, template_key: str) -> sqlite3.Row | None:
+    return conn.execute("SELECT * FROM templates WHERE template_key = ? AND active = 1", (template_key,)).fetchone()
 
 
-def workflow_by_name(conn: sqlite3.Connection, name: str) -> sqlite3.Row | None:
-    return conn.execute("SELECT * FROM workflows WHERE name = ? AND active = 1", (name,)).fetchone()
-
-
-def choose_route(submission: TaskSubmission, workflow: sqlite3.Row | None) -> RouteDecision:
-    if workflow is None:
-        model = "gpt-4.1-mini" if submission.latency_target == "fast" else "claude-3-5-sonnet"
-        fallback = "gemini-2.0-flash"
-        reason = "Used default policy route because the workflow template was not found."
-        review_required = submission.requires_review or submission.task_type in {"compare", "extract"}
-    else:
-        model = workflow["primary_model"]
-        fallback = workflow["fallback_model"]
-        reason = f"Matched workflow policy for {workflow['task_type']} tasks."
-        if submission.latency_target == "fast" and model == "claude-3-5-sonnet":
-            model = "gpt-4.1-mini"
-            fallback = workflow["primary_model"]
-            reason = "Adjusted primary route for lower latency while preserving fallback coverage."
-        review_required = submission.requires_review or bool(workflow["review_required"])
-
-    return RouteDecision(
-        provider=PROVIDER_MAP.get(model, "openai"),
-        model=model,
-        fallback_model=fallback,
-        reason=reason,
-        review_required=review_required,
-    )
-
-
-def serialize_workflow(row: sqlite3.Row) -> WorkflowTemplate:
-    return WorkflowTemplate(
+def serialize_template(conn: sqlite3.Connection, row: sqlite3.Row) -> ContractTemplate:
+    field_rows = conn.execute(
+        "SELECT * FROM template_fields WHERE template_id = ? ORDER BY id",
+        (row["id"],),
+    ).fetchall()
+    return ContractTemplate(
         id=row["id"],
         name=row["name"],
-        task_type=row["task_type"],
-        primary_model=row["primary_model"],
-        fallback_model=row["fallback_model"],
+        template_key=row["template_key"],
+        description=row["description"],
+        agreement_type=row["agreement_type"],
         review_required=bool(row["review_required"]),
         workspace=row["workspace"],
         active=bool(row["active"]),
+        fields=field_definitions(field_rows),
     )
 
 
-def serialize_run(row: sqlite3.Row) -> RunRecord:
-    return RunRecord(
+def serialize_document(row: sqlite3.Row) -> GeneratedDocument:
+    return GeneratedDocument(
         id=row["id"],
-        workflow=row["workflow"],
+        template_name=row["template_name"],
+        template_key=row["template_key"],
+        agreement_type=row["agreement_type"],
         workspace=row["workspace"],
-        provider=row["provider"],
-        model=row["model"],
-        outcome=row["outcome"],
-        submitted_at=row["submitted_at"],
-        context=row["context"],
+        status=row["status"],
+        generated_at=row["generated_at"],
         requested_by=row["requested_by"],
+        recipient_email=row["recipient_email"],
+        preview_title=row["preview_title"],
+        summary=row["summary"],
+        field_values=json.loads(row["field_values_json"]),
+        preview_markdown=row["preview_markdown"],
+        email_status=row["email_status"],
+        download_status=row["download_status"],
     )
 
 
 def serialize_review(row: sqlite3.Row) -> ReviewItem:
     return ReviewItem(
-        id=row["run_id"],
-        workflow=row["workflow"],
+        id=row["document_id"],
+        template_name=row["template_name"],
         summary=row["summary"],
         reviewer=row["reviewer"],
         priority=row["priority"],
@@ -427,16 +454,23 @@ def serialize_review(row: sqlite3.Row) -> ReviewItem:
     )
 
 
-def serialize_file(row: sqlite3.Row) -> UploadedFile:
-    return UploadedFile(
-        id=row["id"],
-        filename=row["filename"],
-        content_type=row["content_type"],
-        workspace=row["workspace"],
-        uploaded_at=row["uploaded_at"],
-        status=row["status"],
-        uploaded_by=row["uploaded_by"],
-    )
+def render_preview(template_name: str, values: dict[str, str]) -> str:
+    lines = [f"# {template_name}", ""]
+    for key, value in values.items():
+        label = key.replace("_", " ").title()
+        lines.append(f"- {label}: {value}")
+    lines.append("")
+    lines.append("Prepared through the OrbitOps AI contract generator demo.")
+    return "\n".join(lines)
+
+
+def summarize_document(template_name: str, values: dict[str, str]) -> str:
+    property_address = values.get("property_address", "the property")
+    principal = values.get("seller_name") or values.get("buyer_name") or "the client"
+    return f"{template_name} prepared for {principal} covering {property_address}."
+
+
+initialize_database()
 
 
 @app.get("/health")
@@ -470,7 +504,12 @@ def register(request: RegisterRequest) -> SessionResponse:
         )
     return SessionResponse(
         token=token,
-        user={"email": request.email.lower(), "full_name": request.full_name, "workspace": request.workspace, "role": request.role},
+        user={
+            "email": request.email.lower(),
+            "full_name": request.full_name,
+            "workspace": request.workspace,
+            "role": request.role,
+        },
     )
 
 
@@ -499,211 +538,238 @@ def login(request: LoginRequest) -> SessionResponse:
 @app.get("/dashboard")
 def dashboard() -> dict[str, object]:
     with db() as conn:
-        runs = [serialize_run(row).model_dump() for row in conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT 8")]
+        templates = conn.execute("SELECT COUNT(*) FROM templates WHERE active = 1").fetchone()[0]
+        documents = [serialize_document(row).model_dump() for row in conn.execute("SELECT * FROM generated_documents ORDER BY id DESC LIMIT 8")]
         review_queue = [
             serialize_review(row).model_dump()
-            for row in conn.execute("SELECT * FROM reviews WHERE status IN ('open', 'pending_approval') ORDER BY id DESC")
+            for row in conn.execute("SELECT * FROM reviews WHERE status = 'open' ORDER BY id DESC LIMIT 8")
         ]
-        files = [serialize_file(row).model_dump() for row in conn.execute("SELECT * FROM files ORDER BY uploaded_at DESC LIMIT 8")]
-        active_workflows = conn.execute("SELECT COUNT(*) FROM workflows WHERE active = 1").fetchone()[0]
     return {
         "metrics": {
-            "active_workflows": active_workflows,
-            "providers_online": len(PROVIDER_HEALTH),
+            "active_templates": templates,
+            "generated_documents": len(documents),
             "pending_reviews": len(review_queue),
-            "validation_pass_rate": "98.4%",
-            "uploaded_files": len(files),
+            "delivery_readiness": "Demo ready",
         },
-        "runs": runs,
+        "documents": documents,
         "review_queue": review_queue,
-        "provider_health": [item.model_dump() for item in PROVIDER_HEALTH],
-        "files": files,
     }
 
 
-@app.get("/workflows")
-def list_workflows() -> dict[str, list[WorkflowTemplate]]:
+@app.get("/templates")
+def list_templates() -> dict[str, list[ContractTemplate]]:
     with db() as conn:
-        rows = conn.execute("SELECT * FROM workflows WHERE active = 1 ORDER BY name").fetchall()
-    return {"items": [serialize_workflow(row) for row in rows]}
+        rows = conn.execute("SELECT * FROM templates WHERE active = 1 ORDER BY name").fetchall()
+        items = [serialize_template(conn, row) for row in rows]
+    return {"items": items}
 
 
-@app.post("/workflows")
-def create_workflow(request: WorkflowCreate, x_auth_token: str | None = Header(default=None)) -> dict[str, WorkflowTemplate]:
+@app.post("/templates")
+def create_template(
+    request: ContractTemplateCreate,
+    x_auth_token: str | None = Header(default=None),
+) -> dict[str, ContractTemplate]:
     require_admin(x_auth_token)
     with db() as conn:
         cursor = conn.execute(
             """
-            INSERT INTO workflows (name, task_type, primary_model, fallback_model, review_required, workspace, active)
+            INSERT INTO templates (name, template_key, description, agreement_type, review_required, workspace, active)
             VALUES (?, ?, ?, ?, ?, ?, 1)
             """,
             (
                 request.name,
-                request.task_type,
-                request.primary_model,
-                request.fallback_model,
+                request.template_key,
+                request.description,
+                request.agreement_type,
                 int(request.review_required),
                 request.workspace,
             ),
         )
-        row = conn.execute("SELECT * FROM workflows WHERE id = ?", (cursor.lastrowid,)).fetchone()
-    return {"workflow": serialize_workflow(row)}
+        for field in request.fields:
+            conn.execute(
+                """
+                INSERT INTO template_fields (template_id, field_key, label, question, required)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (cursor.lastrowid, field.key, field.label, field.question, int(field.required)),
+            )
+        row = conn.execute("SELECT * FROM templates WHERE id = ?", (cursor.lastrowid,)).fetchone()
+        template = serialize_template(conn, row)
+    return {"template": template}
 
 
-@app.get("/runs")
-def list_runs() -> dict[str, list[RunRecord]]:
+@app.post("/intake/start")
+def start_intake(
+    request: ContractIntakeRequest,
+    x_auth_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    get_user_from_token(x_auth_token)
     with db() as conn:
-        rows = conn.execute("SELECT * FROM runs ORDER BY id DESC").fetchall()
-    return {"items": [serialize_run(row) for row in rows]}
+        template = template_with_fields(conn, request.template_key)
+        if template is None:
+            raise HTTPException(status_code=404, detail="Template not found.")
+        session_id = next_sequence_id(conn, "intake_sessions", "INTAKE")
+        conn.execute(
+            """
+            INSERT INTO intake_sessions (id, template_key, workspace, agent_name, client_email, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                session_id,
+                request.template_key,
+                request.workspace,
+                request.agent_name,
+                request.client_email,
+                request.notes,
+                now_iso(),
+            ),
+        )
+        serialized_template = serialize_template(conn, template)
+    return {
+        "session": {
+            "id": session_id,
+            "template_key": request.template_key,
+            "agent_name": request.agent_name,
+            "client_email": request.client_email,
+            "workspace": request.workspace,
+            "assistant_prompt": f"I will help prepare the {serialized_template.name} by collecting the required deal fields one at a time.",
+            "questions": [field.model_dump() for field in serialized_template.fields],
+        }
+    }
 
 
-@app.get("/review")
-def list_review_queue() -> dict[str, list[ReviewItem]]:
-    with db() as conn:
-        rows = conn.execute("SELECT * FROM reviews ORDER BY id DESC").fetchall()
-    return {"items": [serialize_review(row) for row in rows]}
-
-
-@app.get("/providers")
-def list_providers() -> dict[str, list[ProviderHealth]]:
-    return {"items": PROVIDER_HEALTH}
-
-
-@app.get("/files")
-def list_files() -> dict[str, list[UploadedFile]]:
-    with db() as conn:
-        rows = conn.execute("SELECT * FROM files ORDER BY uploaded_at DESC").fetchall()
-    return {"items": [serialize_file(row) for row in rows]}
-
-
-@app.post("/route")
-def route_task(submission: TaskSubmission) -> dict[str, RouteDecision]:
-    with db() as conn:
-        workflow = workflow_by_name(conn, submission.workflow_name)
-    return {"route": choose_route(submission, workflow)}
-
-
-@app.post("/runs")
-def create_run(submission: TaskSubmission, x_auth_token: str | None = Header(default=None)) -> dict[str, object]:
+@app.post("/documents/generate")
+def generate_document(
+    request: ContractGenerationRequest,
+    x_auth_token: str | None = Header(default=None),
+) -> dict[str, object]:
     user = get_user_from_token(x_auth_token)
     with db() as conn:
-        workflow = workflow_by_name(conn, submission.workflow_name)
-        route = choose_route(submission, workflow)
-        run = RunRecord(
-            id=next_run_id(conn),
-            workflow=submission.workflow_name,
-            workspace=submission.workspace,
-            provider=route.provider,
-            model=route.model,
-            outcome="in_review" if route.review_required else "approved",
-            submitted_at=display_time(),
-            context=submission.context,
+        template = template_with_fields(conn, request.template_key)
+        if template is None:
+            raise HTTPException(status_code=404, detail="Template not found.")
+        serialized_template = serialize_template(conn, template)
+        required_keys = {field.key for field in serialized_template.fields if field.required}
+        missing = sorted(key for key in required_keys if not str(request.responses.get(key, "")).strip())
+        if missing:
+            raise HTTPException(status_code=422, detail=f"Missing required fields: {', '.join(missing)}")
+
+        document_id = next_sequence_id(conn, "generated_documents", "DOC")
+        status = "pending_review" if serialized_template.review_required else "ready"
+        summary = summarize_document(serialized_template.name, request.responses)
+        preview_title = f"{serialized_template.name} for {request.responses.get('property_address', 'the property')}"
+        preview_markdown = render_preview(serialized_template.name, request.responses)
+        document = GeneratedDocument(
+            id=document_id,
+            template_name=serialized_template.name,
+            template_key=serialized_template.template_key,
+            agreement_type=serialized_template.agreement_type,
+            workspace=request.workspace,
+            status=status,
+            generated_at=display_time(),
             requested_by=user["full_name"],
+            recipient_email=request.client_email,
+            preview_title=preview_title,
+            summary=summary,
+            field_values=request.responses,
+            preview_markdown=preview_markdown,
+            email_status="not_sent",
+            download_status="ready",
         )
         conn.execute(
             """
-            INSERT INTO runs (id, workflow, workspace, provider, model, fallback_model, outcome, submitted_at, context, requested_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO generated_documents
+            (id, template_key, template_name, agreement_type, workspace, status, generated_at, requested_by, recipient_email,
+             preview_title, summary, preview_markdown, field_values_json, email_status, download_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                run.id,
-                run.workflow,
-                run.workspace,
-                run.provider,
-                run.model,
-                route.fallback_model,
-                run.outcome,
-                run.submitted_at,
-                run.context,
-                run.requested_by,
+                document.id,
+                document.template_key,
+                document.template_name,
+                document.agreement_type,
+                document.workspace,
+                document.status,
+                document.generated_at,
+                document.requested_by,
+                document.recipient_email,
+                document.preview_title,
+                document.summary,
+                document.preview_markdown,
+                json.dumps(document.field_values),
+                document.email_status,
+                document.download_status,
             ),
         )
-        for file_id in submission.uploaded_file_ids:
-            conn.execute("INSERT INTO run_files (run_id, file_id) VALUES (?, ?)", (run.id, file_id))
-        if route.review_required:
+        if serialized_template.review_required:
             conn.execute(
                 """
-                INSERT INTO reviews (run_id, workflow, summary, reviewer, priority, status, requested_by, note)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO reviews (document_id, template_name, summary, reviewer, priority, status, requested_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    run.id,
-                    run.workflow,
-                    submission.context[:90],
-                    "Operations Review",
-                    "high" if submission.task_type in {"compare", "extract"} else "medium",
+                    document.id,
+                    document.template_name,
+                    f"Review generated {document.template_name.lower()} before agent delivery.",
+                    "Broker Review",
+                    "high",
                     "open",
                     user["full_name"],
-                    "",
                 ),
             )
     return {
-        "run": run,
-        "route": route,
-        "structured_result": {
-            "status": "validated",
-            "schema": "workflow_output_v1",
-            "summary": f"Structured result prepared for {submission.workflow_name}.",
-            "workspace": submission.workspace,
+        "document": document,
+        "delivery": {
+            "download_ready": True,
+            "email_ready": True,
+            "mode": "demo",
         },
     }
 
 
-@app.post("/runs/simulate")
-def simulate_run(submission: TaskSubmission, x_auth_token: str | None = Header(default=None)) -> dict[str, object]:
-    return create_run(submission, x_auth_token)
-
-
-@app.post("/files")
-def create_file(request: FileUploadRequest, x_auth_token: str | None = Header(default=None)) -> dict[str, UploadedFile]:
-    user = get_user_from_token(x_auth_token)
+@app.get("/documents")
+def list_documents() -> dict[str, list[GeneratedDocument]]:
     with db() as conn:
-        upload = UploadedFile(
-            id=next_file_id(conn),
-            filename=request.filename,
-            content_type=request.content_type,
-            workspace=request.workspace,
-            uploaded_at=display_time(),
-            status="ready",
-            uploaded_by=user["full_name"],
-        )
-        conn.execute(
-            """
-            INSERT INTO files (id, filename, content_type, workspace, uploaded_at, status, uploaded_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                upload.id,
-                upload.filename,
-                upload.content_type,
-                upload.workspace,
-                upload.uploaded_at,
-                upload.status,
-                upload.uploaded_by,
-            ),
-        )
-    return {"file": upload}
+        rows = conn.execute("SELECT * FROM generated_documents ORDER BY id DESC").fetchall()
+    return {"items": [serialize_document(row) for row in rows]}
 
 
-@app.post("/review/{run_id}")
-def review_run(run_id: str, request: ReviewDecisionRequest, x_auth_token: str | None = Header(default=None)) -> dict[str, object]:
+@app.post("/documents/{document_id}/email")
+def email_document(
+    document_id: str,
+    request: DocumentDeliveryRequest,
+    x_auth_token: str | None = Header(default=None),
+) -> dict[str, object]:
     get_user_from_token(x_auth_token)
     with db() as conn:
-        review = conn.execute("SELECT * FROM reviews WHERE run_id = ? ORDER BY id DESC LIMIT 1", (run_id,)).fetchone()
-        if review is None:
-            raise HTTPException(status_code=404, detail="Review item not found.")
-        run = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
-        if run is None:
-            raise HTTPException(status_code=404, detail="Run not found.")
-        updated_outcome = "approved" if request.decision == "approve" else "failed"
-        updated_status = "approved" if request.decision == "approve" else "rerun_requested"
-        conn.execute("UPDATE runs SET outcome = ? WHERE id = ?", (updated_outcome, run_id))
+        row = conn.execute("SELECT * FROM generated_documents WHERE id = ?", (document_id,)).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Document not found.")
         conn.execute(
-            "UPDATE reviews SET status = ?, reviewer = ?, note = ? WHERE run_id = ?",
-            (updated_status, request.actor, request.note, run_id),
+            "UPDATE generated_documents SET email_status = ?, recipient_email = ?, status = ? WHERE id = ?",
+            ("sent_demo", request.email, "emailed", document_id),
         )
-        updated_run = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
+        updated = conn.execute("SELECT * FROM generated_documents WHERE id = ?", (document_id,)).fetchone()
     return {
-        "run": serialize_run(updated_run),
-        "decision": {"actor": request.actor, "note": request.note, "status": request.decision},
+        "document": serialize_document(updated),
+        "delivery": {"channel": "email", "status": "sent_demo", "email": request.email},
     }
+
+
+@app.post("/documents/{document_id}/download")
+def download_document(document_id: str, x_auth_token: str | None = Header(default=None)) -> dict[str, object]:
+    get_user_from_token(x_auth_token)
+    with db() as conn:
+        row = conn.execute("SELECT * FROM generated_documents WHERE id = ?", (document_id,)).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Document not found.")
+        conn.execute(
+            "UPDATE generated_documents SET download_status = ?, status = ? WHERE id = ?",
+            ("downloaded_demo", "downloaded", document_id),
+        )
+        updated = conn.execute("SELECT * FROM generated_documents WHERE id = ?", (document_id,)).fetchone()
+    return {
+        "document": serialize_document(updated),
+        "delivery": {"channel": "download", "status": "downloaded_demo", "filename": f"{document_id}.pdf"},
+    }
+

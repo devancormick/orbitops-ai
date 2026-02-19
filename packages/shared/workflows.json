@@ -1,23 +1,30 @@
 [
   {
-    "name": "Vendor Intake Review",
-    "taskType": "extract",
-    "primaryModel": "claude-3-5-sonnet",
-    "fallbackModel": "gpt-4.1-mini",
-    "reviewRequired": true
+    "name": "Listing Agreement",
+    "templateKey": "listing-agreement",
+    "agreementType": "listing_agreement",
+    "reviewRequired": true,
+    "fields": [
+      "property_address",
+      "seller_name",
+      "listing_price",
+      "listing_start_date",
+      "listing_end_date",
+      "commission_rate"
+    ]
   },
   {
-    "name": "Policy Delta Check",
-    "taskType": "compare",
-    "primaryModel": "gpt-4.1",
-    "fallbackModel": "gemini-2.0-flash",
-    "reviewRequired": true
-  },
-  {
-    "name": "Claims Summary Queue",
-    "taskType": "summarize",
-    "primaryModel": "gemini-2.0-flash",
-    "fallbackModel": "claude-3-5-sonnet",
-    "reviewRequired": false
+    "name": "Purchase & Sale Agreement",
+    "templateKey": "purchase-sale-agreement",
+    "agreementType": "purchase_sale_agreement",
+    "reviewRequired": true,
+    "fields": [
+      "property_address",
+      "buyer_name",
+      "seller_name",
+      "purchase_price",
+      "closing_date",
+      "earnest_money"
+    ]
   }
 ]
