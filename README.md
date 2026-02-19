@@ -46,6 +46,15 @@ The implementation is intentionally lightweight, but it is structured like a cre
 - Admin template form for adding or adjusting templates
 - FastAPI endpoints for templates, intake, generation, delivery, and auth
 
+## Demo Walkthrough
+
+1. Sign in with the seeded admin account.
+2. Open the intake screen and choose either Listing Agreement or Purchase & Sale Agreement.
+3. Fill the guided contract fields for the property, parties, price, dates, and commission or earnest money.
+4. Generate the agreement and review the document preview summary.
+5. Simulate email delivery or PDF download from the same flow.
+6. Use the admin screen to add another template variation for future contract types.
+
 ## Product Screens
 
 These visuals remain helpful as lightweight repository screenshots while the product is positioned around contract automation.

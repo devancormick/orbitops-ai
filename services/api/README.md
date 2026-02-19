@@ -2,6 +2,8 @@
 
 FastAPI service for the real estate contract generator demo. It handles template management, guided intake, document generation, simulated delivery, and local auth.
 
+The API is intentionally deterministic and demo-safe: it stores structured contract data locally, validates required fields, and simulates downstream delivery behavior without external providers.
+
 ## Available endpoints
 
 - `POST /auth/register`
