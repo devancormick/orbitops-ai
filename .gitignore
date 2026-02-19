@@ -4,6 +4,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.envrc
 node_modules/
 .next/
 out/
@@ -22,3 +23,10 @@ __pycache__/
 *.pyd
 uploads/
 tmp/
+*.db
+*.sqlite
+*.sqlite3
+generated/
+exports/
+email-previews/
+pdf-output/

@@ -1,68 +1,70 @@
 # OrbitOps AI
 
-OrbitOps AI is a private product-style repository for a multi-AI operations workflow platform built for teams that process documents, internal requests, and repeatable knowledge work through one governed system.
+OrbitOps AI is a private, portfolio-style real estate contract generator demo. It presents a lightweight SaaS workflow where an AI-guided assistant collects deal details from an agent, maps those answers into structured fields, and prepares finished agreement packets for preview, download, and email delivery.
 
-The project is intentionally similar to the kind of platform a client would request for multi-model AI orchestration, but it is framed as a stronger prior-client solution with a clearer operations focus, human review checkpoints, and better traceability across every run.
+The repository is intentionally framed like a prior client build rather than a generic sandbox. The focus is practical document automation: guided intake, template management, PDF-ready output, and a simple admin layer that keeps the system easy to demo and easy to extend.
 
 ## Product Overview
 
-OrbitOps AI combines workflow submission, file intake, model routing, structured outputs, and review queues into a single workspace. Teams can upload source files, choose a workflow, send tasks through the orchestration layer, and review validated results before they are approved for downstream use.
+The app walks a real estate agent through the information needed to produce agreements such as Listing Agreements and Purchase & Sale Agreements. Instead of dropping users into an open chat box, the system stages the conversation around required contract fields, validates the captured data, and assembles a finished document record that can be reviewed or shared immediately.
 
 ## Core Capabilities
 
-- Multi-provider AI routing by workflow type, latency target, and output requirements
-- Team workspaces with account-based access and run history
-- Structured outputs for extraction, classification, comparison, drafting, and summarization workflows
-- File upload and processing support for operational documents
-- Human review and approval checkpoints for sensitive or business-critical tasks
-- Logging, fallback behavior, and auditability across task execution
+- AI-guided contract intake for real estate agents
+- Structured field capture for sellers, buyers, property details, price, dates, and commission
+- Template-driven agreement generation for multiple contract types
+- Preview, download, and email flows for completed documents
+- Admin controls for enabling and adjusting contract templates
+- Lightweight persistence through FastAPI and SQLite for a demo-friendly local setup
 
-## Architecture Direction
+## Architecture
 
-- `apps/web`: Next.js application for authentication, dashboard views, workflow submission, file upload, run history, and review queues
-- `services/api`: Python orchestration service for provider adapters, prompt handling, routing logic, structured output validation, retries, and fallbacks
-- `packages/shared`: shared contracts for workflow definitions, result schemas, and API payload shapes
+- `apps/web`: Next.js application for the agent intake flow, document preview, admin tools, and authentication
+- `services/api`: FastAPI backend for templates, intake sessions, document generation, simulated delivery, and local persistence
+- `packages/shared`: shared seed data and contract template metadata used by the demo
 
-## Included Starter Project
+## Included Demo Scope
 
-This repository now includes a real starter scaffold instead of documentation only:
+The repository includes a working scaffold for:
 
-- a multi-page Next.js operations workspace in `apps/web`
-- a FastAPI routing and run-simulation service in `services/api`
-- shared workflow seed data in `packages/shared`
+- contract template browsing
+- AI-style guided intake
+- generated document previews
+- download and email simulation
+- template administration
+- seeded auth for local review
 
-The current implementation is intentionally lightweight, but it gives the project a usable starting point for a real product build.
+The implementation is intentionally lightweight, but it is structured like a credible MVP that can be shown in a proposal or expanded into a production build.
 
-## Implemented Product Areas
+## MVP Coverage
 
-- overview dashboard with live workflow and run metrics
-- workflow template library with route and review settings
-- run history screen with provider visibility
-- review queue screen for human approval checkpoints
-- new run screen for structured workflow submission
-- authentication screen with seeded admin access
-- admin workflow management screen for policy creation
-- API routes for auth, dashboard data, workflow lists, runs, providers, files, review queue, routing, and execution
+- Listing Agreement template
+- Purchase & Sale Agreement template
+- Agent-facing intake flow with structured prompts
+- Generated agreement preview with field summary
+- Download and email actions in demo mode
+- Admin template form for adding or adjusting templates
+- FastAPI endpoints for templates, intake, generation, delivery, and auth
 
 ## Product Screens
 
-These visuals are based on the actual OrbitOps product structure in this repo. They are meant to help a new client understand the dashboard, routing logic, and human review flow quickly.
+These visuals remain helpful as lightweight repository screenshots while the product is positioned around contract automation.
 
 ### Dashboard Overview
 
-Shows the main operations workspace with workflow health, run history, and live metrics.
+Shows the main workspace and generated agreement activity.
 
 ![OrbitOps dashboard overview](assets/screenshots/dashboard-overview.svg)
 
 ### Routing Center
 
-Shows how a workflow is evaluated, how the model route is selected, and how fallback and governance rules are applied.
+Shows how the assistant-guided intake becomes a structured document workflow.
 
 ![OrbitOps routing center](assets/screenshots/routing-center.svg)
 
 ### Review Queue
 
-Shows the approval flow for sensitive runs, including structured output review and audit history.
+Shows documents awaiting human approval before final delivery.
 
 ![OrbitOps review queue](assets/screenshots/review-queue.svg)
 
@@ -85,22 +87,18 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-The API exposes:
+Current API surface:
 
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /dashboard`
-- `GET /workflows`
-- `POST /workflows`
-- `GET /runs`
-- `POST /runs`
-- `GET /review`
-- `POST /review/{run_id}`
-- `GET /providers`
-- `GET /files`
-- `POST /files`
-- `POST /route`
-- `POST /runs/simulate`
+- `GET /templates`
+- `POST /templates`
+- `POST /intake/start`
+- `POST /documents/generate`
+- `GET /documents`
+- `POST /documents/{document_id}/email`
+- `POST /documents/{document_id}/download`
 
 Seeded local admin account:
 
@@ -109,11 +107,11 @@ Seeded local admin account:
 
 ## Why This Project Exists
 
-This repository is meant to represent a credible, real-world platform from a previous engagement rather than a direct copy of a current lead. It is designed to show a more mature product direction with workflow templates, model governance, performance logging, and approval steps built into the system from the start.
+This repository is meant to package a believable prior solution for an operator-led client who needs a simple AI document generator, not a research-heavy AI stack. The emphasis is on reliability, structured capture, and fast MVP delivery instead of complex orchestration or hype-driven architecture.
 
 ## Repository Status
 
-This repository is private and intended for controlled development and portfolio-style project packaging only.
+This repository is private and intended for controlled development, proposal support, and portfolio-style packaging only.
 
 ## License
 
